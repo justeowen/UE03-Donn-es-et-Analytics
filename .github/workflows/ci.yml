@@ -1,0 +1,15 @@
+name: CI
+on: push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run lint && npm test
+      - run: docker build -t ghcr.io/justeowen/game-telemetry:$GITHUB_SHA .
+      - run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity CRITICAL --ignore-unfixed --exit-code 1 ghcr.io/justeowen/game-telemetry:$GITHUB_SHA
+      - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin && docker push ghcr.io/justeowen/game-telemetry:$GITHUB_SHA
