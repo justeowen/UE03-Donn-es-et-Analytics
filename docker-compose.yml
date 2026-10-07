@@ -4,28 +4,32 @@ services:
     build: .
     ports:
       - "8080:8080"
-    volumes:                  
-      - logs:/app/logs        
+    volumes:
+      - logs:/app/logs
 
   loadgen:
     build: .
     command: node scripts/loadgen.js --url http://app:8080
     depends_on:
       - app
-  loki:                       
+
+  loki:
     image: grafana/loki:3.4.2
-    alloy:                 
+    command: -config.file=/etc/loki/local-config.yaml -validation.reject-old-samples=false -ingester.max-chunk-age=400h
+
+  alloy:
     image: grafana/alloy:v1.8.0
     volumes:
       - ./alloy/logs.alloy:/etc/alloy/config.alloy
       - logs:/logs:ro
+      - ./data:/data:ro
 
-  grafana:                    
+  grafana:
     image: grafana/grafana:11.6.0
     ports:
       - "3000:3000"
     volumes:
       - ./grafana/loki.yml:/etc/grafana/provisioning/datasources/loki.yml
 
-volumes:                      
+volumes:
   logs:
