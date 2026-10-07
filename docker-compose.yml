@@ -1,0 +1,12 @@
+services:
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+
+  loadgen:
+    build: .
+    command: node scripts/loadgen.js --url http://app:8080
+    depends_on:
+      - app
