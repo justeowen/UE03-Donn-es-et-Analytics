@@ -15,12 +15,21 @@ services:
 
   loki:
     image: grafana/loki:3.4.2
+    command: -config.file=/etc/loki/local-config.yaml -validation.reject-old-samples=false -ingester.max-chunk-age=400h
 
   alloy:
     image: grafana/alloy:v1.8.0
     volumes:
       - ./alloy/logs.alloy:/etc/alloy/config.alloy
       - logs:/logs:ro
+      - ./data:/data:ro
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
 
   grafana:
     image: grafana/grafana:11.6.0
@@ -28,6 +37,7 @@ services:
       - "3000:3000"
     volumes:
       - ./grafana/loki.yml:/etc/grafana/provisioning/datasources/loki.yml
+      - ./grafana/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
 
 volumes:
   logs:

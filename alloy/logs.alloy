@@ -3,6 +3,35 @@ loki.source.file "app" {
   forward_to = [loki.write.loki.receiver]
 }
 
+loki.source.file "export" {
+  targets    = [{"__path__" = "/data/admin-export-2026-09-20_26.log", "job" = "export"}]
+  forward_to = [loki.process.export.receiver]
+}
+
+loki.process "export" {
+  stage.multiline {
+    firstline     = "^(Performance spike|Game completed) "
+    max_lines     = 500
+    max_wait_time = "3s"
+  }
+
+  stage.regex {
+    expression = `^(?P<kind>Performance spike|Game completed) \S+ · (?P<date>[^\n]+)\n[^\n]*\n(?P<body>(?s:.+))`
+  }
+
+  stage.timestamp {
+    source   = "date"
+    format   = "1/2/2006, 3:04:05 PM"
+    location = "Europe/Paris"
+  }
+
+  stage.output {
+    source = "body"
+  }
+
+  forward_to = [loki.write.loki.receiver]
+}
+
 loki.write "loki" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
