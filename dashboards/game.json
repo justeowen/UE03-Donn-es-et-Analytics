@@ -1,0 +1,28 @@
+{
+  "uid": "game",
+  "title": "Activité de jeu et intégrité des parties",
+  "time": { "from": "2026-09-20T00:00:00+02:00", "to": "2026-09-27T00:00:00+02:00" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Combien de parties sont en cours ?",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "games_in_progress" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Quand les parties sur vault explosent-elles (farming) ?",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{ "refId": "A", "expr": "sum(count_over_time({job=\"export\"} != \"report\" | json | map=\"vault\" [1h]))" }]
+    },
+    {
+      "type": "table",
+      "title": "Quels clients envoient des rapports impossibles (FPS > 144) ?",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{ "refId": "A", "queryType": "instant", "expr": "sum by (client) (count_over_time({job=~\"telemetry|export\"} | json | report_fps > 144 | regexp \"\\\"id\\\": ?\\\"P-(?P<client>[0-9a-f]{8})\" [$__range]))" }]
+    }
+  ]
+}

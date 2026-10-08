@@ -1,0 +1,34 @@
+{
+  "uid": "player",
+  "title": "Performance côté joueur",
+  "time": { "from": "2026-09-20T00:00:00+02:00", "to": "2026-09-27T00:00:00+02:00" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Quelles causes de saccades sont signalées ?",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [
+        { "refId": "A", "legendFormat": "overlay", "expr": "sum(count_over_time({job=~\"telemetry|export\"} | json | report_work_details_renderOverlay > 200 [1h]))" },
+        { "refId": "B", "legendFormat": "shader", "expr": "sum(count_over_time({job=~\"telemetry|export\"} | json | report_graphics_firstCapture=\"true\" [1h]))" },
+        { "refId": "C", "legendFormat": "hidden", "expr": "sum(count_over_time({job=~\"telemetry|export\"} |= \"visibilityHidden\" [1h]))" },
+        { "refId": "D", "legendFormat": "network", "expr": "sum(count_over_time({job=~\"telemetry|export\"} | json | report_reason=\"network\" [1h]))" },
+        { "refId": "E", "legendFormat": "world", "expr": "sum(count_over_time({job=~\"telemetry|export\"} | json | report_work_details_worldDynamics > 50 [1h]))" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Quelle version provoque les saccades d'overlay ?",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{ "refId": "A", "legendFormat": "{{report_build}}", "expr": "sum by (report_build) (count_over_time({job=~\"telemetry|export\"} | json | report_work_details_renderOverlay > 200 [1h]))" }]
+    },
+    {
+      "type": "table",
+      "title": "Quels écrans sont touchés par les saccades d'overlay ?",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "targets": [{ "refId": "A", "queryType": "instant", "expr": "sum by (report_graphics_width, report_graphics_bloom) (count_over_time({job=~\"telemetry|export\"} | json | report_work_details_renderOverlay > 200 [$__range]))" }]
+    }
+  ]
+}

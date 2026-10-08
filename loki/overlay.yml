@@ -1,0 +1,6 @@
+groups:
+  - name: overlay
+    rules:
+      - alert: OverlayRegression
+        expr: sum(count_over_time({job="telemetry"} | json | report_work_details_renderOverlay > 200 [10m])) > 5
+        for: 5m

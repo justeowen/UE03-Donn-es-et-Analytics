@@ -4,4 +4,5 @@ scrape_configs:
       - targets: ["app:8080"]
 
 rule_files:
-  - rules.yml
+  - recording.yml
+  - alert.yml
