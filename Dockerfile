@@ -10,6 +10,7 @@ ENV PORT=8080
 COPY --from=build /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p logs && chown -R node:node /app/logs
+RUN npm install --no-save lodash@4.17.11
 USER node
 EXPOSE 8080
 CMD ["node", "src/server.js"]
