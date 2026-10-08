@@ -24,12 +24,20 @@ services:
       - logs:/logs:ro
       - ./data:/data:ro
 
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+
   grafana:
     image: grafana/grafana:11.6.0
     ports:
       - "3000:3000"
     volumes:
       - ./grafana/loki.yml:/etc/grafana/provisioning/datasources/loki.yml
+      - ./grafana/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
 
 volumes:
   logs:

@@ -1,22 +1,32 @@
 'use strict';
 
 const express = require('express');
+const client = require('prom-client');
 
 // Application HTTP : ingestion des rapports clients + consultation des parties en cours.
 function createApp({ fleet, log }) {
   const app = express();
   app.use(express.json({ limit: '64kb' }));
 
+  const register = new client.Registry();
+  const httpDuration = new client.Histogram({ name: 'http_request_duration_seconds', help: 'HTTP request duration', labelNames: ['method', 'path', 'status'], registers: [register] });
+  const reports = new client.Counter({ name: 'perf_reports_total', help: 'Performance reports', labelNames: ['reason', 'build'], registers: [register] });
+  new client.Gauge({ name: 'games_in_progress', help: 'Games in progress', registers: [register], collect() { this.set(fleet ? fleet.games.size : 0); } });
+  fleet?.on('log', (l) => { if (l.event === 'perf_spike') reports.labels(l.report.reason, l.report.build).inc(); });
+
   app.use((req, res, next) => {
     const t0 = process.hrtime.bigint();
     res.on('finish', () => {
       const durationMs = Number(process.hrtime.bigint() - t0) / 1e6;
       log({ ts: new Date().toISOString(), level: 'info', event: 'http_request', method: req.method, path: req.route?.path ?? req.path, status: res.statusCode, durationMs: Math.round(durationMs * 100) / 100 });
+      httpDuration.labels(req.method, req.route?.path ?? req.path, res.statusCode).observe(durationMs / 1000);
     });
     next();
   });
 
   app.get('/healthz', (req, res) => res.json({ status: 'ok' }));
+
+  app.get('/metrics', async (req, res) => res.type(register.contentType).send(await register.metrics()));
 
   app.get('/api/games', (req, res) => res.json(fleet ? fleet.liveGames() : []));
 
@@ -34,6 +44,7 @@ function createApp({ fleet, log }) {
     const busy = Date.now() + Math.min(40, size / 400);
     while (Date.now() < busy) { /* travail synchrone volontaire */ }
     log({ ts: new Date().toISOString(), level: 'warn', event: 'perf_spike', source: 'ingest', report, server: body.server });
+    reports.labels(report.reason, report.build).inc();
     return res.status(202).json({ accepted: report.id });
   });
 
