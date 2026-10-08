@@ -1,0 +1,9 @@
+groups:
+  - name: alerts
+    rules:
+      - alert: HighErrorRatio
+        expr: http:error_ratio:5m > 0.1
+        for: 5m
+      - alert: HighLatency
+        expr: http:latency_p95:5m > 0.1
+        for: 5m
