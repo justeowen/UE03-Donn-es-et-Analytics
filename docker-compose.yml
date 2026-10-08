@@ -16,6 +16,8 @@ services:
   loki:
     image: grafana/loki:3.4.2
     command: -config.file=/etc/loki/local-config.yaml -validation.reject-old-samples=false -ingester.max-chunk-age=400h
+    volumes:
+      - ./loki:/loki/rules/fake
 
   alloy:
     image: grafana/alloy:v1.8.0
@@ -38,6 +40,8 @@ services:
     volumes:
       - ./grafana/loki.yml:/etc/grafana/provisioning/datasources/loki.yml
       - ./grafana/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+      - ./grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./dashboards:/var/lib/grafana/dashboards
 
 volumes:
   logs:

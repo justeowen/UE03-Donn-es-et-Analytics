@@ -1,0 +1,28 @@
+{
+  "uid": "service",
+  "title": "Santé du service",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Combien de requêtes reçoit l'API ?",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum(rate(http_request_duration_seconds_count[5m]))" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Quelle part des requêtes est en erreur ?",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "http:error_ratio:5m" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "En combien de temps répondent 95 % des requêtes ?",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "http:latency_p95:5m" }]
+    }
+  ]
+}
